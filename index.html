@@ -1,0 +1,962 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>修仙世界模拟器</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700;900&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #f5f3ee;
+        --surface: #fffdf8;
+        --panel: #ffffff;
+        --ink: #211d16;
+        --ink-soft: #4c463c;
+        --muted: #7d7668;
+        --line: #e2dccf;
+        --line-strong: #cbc3b0;
+        --accent: #b03a12;
+        --accent-ink: #ffffff;
+        --accent-soft: rgba(176, 58, 18, 0.09);
+        --jade: #1d7a5f;
+        --jade-soft: rgba(29, 122, 95, 0.12);
+        --good: #1d7a45;
+        --good-soft: rgba(29, 122, 69, 0.12);
+        --warn: #9a6a00;
+        --warn-soft: rgba(190, 140, 10, 0.16);
+        --bad: #b3271e;
+        --bad-soft: rgba(179, 39, 30, 0.1);
+        --code-bg: #221d15;
+        --code-ink: #f2e9d5;
+        --chip: #efece3;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #131109;
+          --surface: #1d1a12;
+          --panel: #1d1a12;
+          --ink: #ede7d8;
+          --ink-soft: #c9c1ae;
+          --muted: #9d9582;
+          --line: #38331f;
+          --line-strong: #554d33;
+          --accent: #ff8a50;
+          --accent-ink: #1c1005;
+          --accent-soft: rgba(255, 138, 80, 0.13);
+          --jade: #4cc9a4;
+          --jade-soft: rgba(76, 201, 164, 0.13);
+          --good: #52c98a;
+          --good-soft: rgba(82, 201, 138, 0.13);
+          --warn: #e8b93e;
+          --warn-soft: rgba(232, 185, 62, 0.14);
+          --bad: #ff7a6b;
+          --bad-soft: rgba(255, 122, 107, 0.13);
+          --code-bg: #0d0b07;
+          --code-ink: #f2e9d5;
+          --chip: #2a2618;
+        }
+      }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Noto Sans SC", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+        font-size: 16px;
+        line-height: 1.65;
+      }
+      .mono { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .wrap { max-width: 1060px; margin: 0 auto; padding: 30px 18px 70px; }
+
+      /* ---------- intro ---------- */
+      .intro h1 {
+        font-family: "Noto Serif SC", serif;
+        font-weight: 900;
+        font-size: clamp(27px, 5.4vw, 40px);
+        line-height: 1.25;
+        margin: 0 0 12px;
+        letter-spacing: 0.02em;
+      }
+      .intro .lede { margin: 0; max-width: 46em; color: var(--ink-soft); font-size: 16.5px; }
+      .intro .lede b { color: var(--ink); }
+      .rule-note {
+        margin-top: 14px;
+        display: inline-block;
+        background: var(--chip);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 7px 13px;
+        font-size: 14px;
+        color: var(--ink-soft);
+      }
+      .rule-note .mono { color: var(--ink); font-weight: 600; }
+
+      /* ---------- panels ---------- */
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 22px;
+        margin-top: 22px;
+      }
+      .panel > h2 {
+        font-family: "Noto Serif SC", serif;
+        font-weight: 700;
+        font-size: 23px;
+        margin: 0 0 6px;
+      }
+      .panel > .sub { margin: 0 0 16px; color: var(--muted); font-size: 14.5px; max-width: 46em; }
+      .panel > .sub b { color: var(--ink-soft); }
+
+      /* ---------- generic controls ---------- */
+      .btn {
+        appearance: none; border: 1px solid var(--line-strong); background: var(--surface);
+        color: var(--ink); border-radius: 9px; padding: 8px 16px;
+        font: inherit; font-size: 14.5px; font-weight: 500; cursor: pointer;
+      }
+      .btn:hover { border-color: var(--accent); color: var(--accent); }
+      .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+      .btn.primary:hover { color: var(--accent-ink); opacity: 0.92; }
+      .btn.small { padding: 4px 12px; font-size: 13px; }
+      .btn.danger:hover { border-color: var(--bad); color: var(--bad); }
+      input[type="range"] { width: 100%; accent-color: var(--accent); height: 26px; cursor: pointer; }
+      select, input[type="text"], input[type="number"] {
+        width: 100%; padding: 8px 11px; border: 1px solid var(--line-strong); border-radius: 8px;
+        background: var(--panel); color: var(--ink); font: inherit; font-size: 15px;
+      }
+      input[type="number"] { font-family: "IBM Plex Mono", monospace; }
+      .field { margin-bottom: 13px; }
+      .field label { display: block; font-size: 13.5px; font-weight: 600; color: var(--ink-soft); margin-bottom: 5px; }
+      .field .hint { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+
+      .badge {
+        display: inline-block; border-radius: 999px;
+        padding: 3px 12px; font-size: 13.5px; font-weight: 700;
+      }
+      .badge.ok { background: var(--good-soft); color: var(--good); }
+      .badge.warn { background: var(--warn-soft); color: var(--warn); }
+      .badge.bad { background: var(--bad-soft); color: var(--bad); }
+      .badge.plain { background: var(--chip); color: var(--ink-soft); }
+
+      .stat-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
+      .stat {
+        border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; background: var(--panel);
+        min-width: 118px; flex: 1 1 130px;
+      }
+      .stat .sl { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: 0.05em; }
+      .stat .sv { font-family: "IBM Plex Mono", monospace; font-size: 21px; font-weight: 600; line-height: 1.35; }
+      .stat .sv.accent { color: var(--accent); }
+      .stat .sv.good { color: var(--good); }
+      .stat .sv.bad { color: var(--bad); }
+
+      pre.code {
+        margin: 0; background: var(--code-bg); color: var(--code-ink);
+        border-radius: 10px; padding: 13px 15px;
+        font-family: "IBM Plex Mono", monospace; font-size: 13px; line-height: 1.7;
+        overflow-x: auto; white-space: pre;
+      }
+      pre.code .cm { opacity: 0.55; }
+
+      ol.steps { list-style: none; margin: 0; padding: 0; counter-reset: step; }
+      ol.steps li {
+        counter-increment: step;
+        display: flex; gap: 10px; align-items: baseline;
+        padding: 7px 0; border-bottom: 1px solid var(--line);
+        font-size: 14.5px;
+      }
+      ol.steps li:last-child { border-bottom: none; }
+      ol.steps li::before {
+        content: counter(step);
+        flex: none; width: 20px; height: 20px; border-radius: 50%;
+        background: var(--chip); color: var(--ink-soft);
+        font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 600;
+        display: inline-flex; align-items: center; justify-content: center;
+        transform: translateY(3px);
+      }
+      ol.steps .expr { color: var(--ink-soft); }
+      ol.steps .expr .mono { font-size: 13.5px; }
+      ol.steps .res { font-family: "IBM Plex Mono", monospace; font-weight: 600; margin-left: auto; white-space: nowrap; }
+
+      /* ---------- ladder ---------- */
+      .ladder-ctl { display: grid; grid-template-columns: 1fr auto; gap: 8px 22px; align-items: center; margin-bottom: 18px; }
+      @media (max-width: 640px) { .ladder-ctl { grid-template-columns: 1fr; } }
+      .ladder-ctl .lc-label { font-size: 14px; font-weight: 600; color: var(--ink-soft); }
+      .ladder-ctl .lc-val { font-family: "IBM Plex Mono", monospace; font-size: 24px; font-weight: 600; color: var(--accent); white-space: nowrap; }
+      .ladder-ctl .lc-note { grid-column: 1 / -1; font-size: 13px; color: var(--muted); margin: 0; }
+      .ladder { display: grid; gap: 7px; }
+      .ladder-row { display: grid; grid-template-columns: 62px 1fr 196px; gap: 12px; align-items: center; }
+      @media (max-width: 640px) { .ladder-row { grid-template-columns: 52px 1fr; } .ladder-row .lr-nums { grid-column: 2; } }
+      .ladder-row .lr-name { font-family: "Noto Serif SC", serif; font-weight: 700; font-size: 17px; }
+      .ladder-row .lr-track { position: relative; height: 20px; background: var(--chip); border-radius: 6px; overflow: hidden; }
+      .ladder-row .lr-bar {
+        position: absolute; top: 0; bottom: 0; border-radius: 6px;
+        background: linear-gradient(90deg, var(--jade), var(--accent));
+        opacity: 0.85; min-width: 3px;
+      }
+      .ladder-row .lr-nums { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+      .ladder-row .lr-nums b { color: var(--ink-soft); font-weight: 600; }
+      .ladder-foot { margin-top: 12px; font-size: 13.5px; color: var(--muted); }
+
+      /* ---------- character roster ---------- */
+      .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 14px; }
+      @media (max-width: 880px) { .form-grid { grid-template-columns: repeat(2, 1fr); } }
+      @media (max-width: 520px) { .form-grid { grid-template-columns: 1fr; } }
+      .form-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 4px; }
+      .form-actions .fa-note { font-size: 13px; color: var(--muted); }
+      .char-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(228px, 1fr)); gap: 12px; margin-top: 18px; }
+      .char-card {
+        border: 1px solid var(--line); border-radius: 12px; background: var(--panel);
+        padding: 14px 16px; position: relative;
+      }
+      .char-card .cc-top { display: flex; align-items: baseline; gap: 8px; }
+      .char-card .cc-name { font-family: "Noto Serif SC", serif; font-weight: 700; font-size: 18px; }
+      .char-card .cc-rank { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--muted); margin-left: auto; }
+      .char-card .cc-realm { color: var(--accent); font-weight: 700; font-size: 14.5px; margin-top: 1px; }
+      .char-card .cc-power { font-family: "IBM Plex Mono", monospace; font-size: 27px; font-weight: 600; line-height: 1.25; margin-top: 4px; }
+      .char-card .cc-power small { font-size: 12.5px; color: var(--muted); font-weight: 400; }
+      .char-card .cc-parts { font-size: 12.5px; color: var(--muted); margin-top: 2px; line-height: 1.55; }
+      .char-card .cc-parts .mono { font-size: 12px; }
+      .char-card .cc-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+      .char-card .cc-tag { font-size: 12px; background: var(--chip); border-radius: 999px; padding: 2px 9px; color: var(--ink-soft); }
+      .char-card .cc-del {
+        position: absolute; top: 8px; right: 8px; appearance: none; border: none; background: transparent;
+        color: var(--muted); font-size: 16px; line-height: 1; cursor: pointer; padding: 4px 6px; border-radius: 6px;
+      }
+      .char-card .cc-del:hover { color: var(--bad); background: var(--bad-soft); }
+      .char-card .cc-sample { font-size: 11.5px; color: var(--muted); }
+      .empty-note { color: var(--muted); font-size: 14.5px; border: 1px dashed var(--line-strong); border-radius: 10px; padding: 16px; text-align: center; margin-top: 18px; }
+
+      /* ---------- battle / breakthrough ---------- */
+      .vs-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: end; }
+      @media (max-width: 640px) { .vs-grid { grid-template-columns: 1fr; } .vs-mid { text-align: center; } }
+      .vs-mid { font-family: "Noto Serif SC", serif; font-weight: 900; font-size: 22px; color: var(--muted); padding-bottom: 8px; }
+      .duel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+      @media (max-width: 880px) { .duel-grid { grid-template-columns: 1fr; } }
+      .power-bars { margin: 6px 0 4px; }
+      .pb-row { display: grid; grid-template-columns: 86px 1fr 92px; gap: 10px; align-items: center; margin-bottom: 8px; font-size: 13.5px; }
+      .pb-row .pb-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .pb-row .pb-track { height: 16px; background: var(--chip); border-radius: 5px; position: relative; overflow: hidden; }
+      .pb-row .pb-fill { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 5px; background: var(--jade); min-width: 3px; }
+      .pb-row .pb-fill.loser { background: var(--accent); }
+      .pb-row .pb-val { font-family: "IBM Plex Mono", monospace; font-size: 13px; text-align: right; }
+      .verdict {
+        border-radius: 12px; padding: 16px 18px; margin-top: 16px;
+        border: 1px solid var(--line);
+      }
+      .verdict.ok { background: var(--good-soft); border-color: transparent; }
+      .verdict.warn { background: var(--warn-soft); border-color: transparent; }
+      .verdict.bad { background: var(--bad-soft); border-color: transparent; }
+      .verdict .v-title { font-family: "Noto Serif SC", serif; font-weight: 900; font-size: 21px; margin: 0 0 4px; }
+      .verdict.ok .v-title { color: var(--good); }
+      .verdict.warn .v-title { color: var(--warn); }
+      .verdict.bad .v-title { color: var(--bad); }
+      .verdict p { margin: 0; font-size: 14.5px; color: var(--ink-soft); }
+      .verdict p + p { margin-top: 6px; }
+      .verdict .mono { font-weight: 600; color: var(--ink); }
+
+      .rate-big { font-family: "IBM Plex Mono", monospace; font-size: 46px; font-weight: 600; line-height: 1.1; color: var(--accent); }
+      .rate-wrap { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin: 8px 0 4px; }
+      .rate-bar { flex: 1 1 180px; height: 14px; background: var(--chip); border-radius: 7px; overflow: hidden; }
+      .rate-bar > div { height: 100%; background: linear-gradient(90deg, var(--jade), var(--accent)); border-radius: 7px; }
+
+      /* ---------- sect ledger ---------- */
+      .sect-grid { display: grid; grid-template-columns: 300px 1fr; gap: 28px; }
+      @media (max-width: 880px) { .sect-grid { grid-template-columns: 1fr; } }
+
+      /* ---------- view toggle + neural view ---------- */
+      .view-toggle { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 10px; overflow: hidden; margin: 2px 0 16px; }
+      .view-toggle button {
+        appearance: none; border: none; background: var(--panel); color: var(--ink-soft);
+        font: inherit; font-size: 14.5px; font-weight: 600; padding: 8px 18px; cursor: pointer;
+      }
+      .view-toggle button.active { background: var(--accent); color: var(--accent-ink); }
+      .nn-intro { font-size: 14.5px; color: var(--ink-soft); margin: 0 0 14px; max-width: 48em; }
+      .nn-intro b { color: var(--ink); }
+      .nn-layers { display: flex; align-items: stretch; gap: 8px; }
+      .nn-arrow { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 18px; flex: none; }
+      .nn-layer {
+        flex: 1 1 0; border: 1px solid var(--line); border-radius: 12px; background: var(--panel);
+        padding: 12px; display: flex; flex-direction: column; justify-content: center; gap: 8px; min-width: 0;
+      }
+      .nn-layer .nl-title { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; color: var(--muted); text-align: center; }
+      .nn-node { border: 1px solid var(--line-strong); border-radius: 9px; padding: 7px 8px; background: var(--surface); text-align: center; }
+      .nn-node .nn-name { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 14px; }
+      .nn-node .nn-formula { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+      .nn-node .nn-val { font-family: "IBM Plex Mono", monospace; font-size: 17px; font-weight: 600; line-height: 1.3; }
+      .nn-node.win-ok { background: var(--good-soft); border-color: var(--good); }
+      .nn-node.win-warn { background: var(--warn-soft); border-color: var(--warn); }
+      .nn-node.win-bad { background: var(--bad-soft); border-color: var(--bad); }
+      @media (max-width: 760px) {
+        .nn-layers { flex-direction: column; }
+        .nn-arrow { transform: rotate(90deg); padding: 2px 0; }
+      }
+
+      /* ---------- notes ---------- */
+      .notes { margin-top: 34px; max-width: 46em; }
+      .notes h2 { font-family: "Noto Serif SC", serif; font-size: 23px; font-weight: 700; margin: 26px 0 6px; }
+      .notes h2:first-child { margin-top: 0; }
+      .notes p { margin: 0 0 10px; color: var(--ink-soft); }
+      .notes p b { color: var(--ink); }
+      .notes .mono { font-size: 0.94em; }
+      .notes pre.code { margin: 10px 0 14px; max-width: none; }
+
+      footer { margin-top: 44px; border-top: 1px solid var(--line); padding-top: 16px; font-size: 13.5px; color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="intro">
+        <h1>修仙世界模拟器</h1>
+        <p class="lede">
+          网文后期战力崩坏，多半不是作者不用心，而是<b>规则只存在于脑子里</b>：前面元婴老祖一掌碎山，
+          后面金丹小辈越阶反杀，读者一算账就出戏。这个模拟器把修炼规则<b>写成算式、当场验算</b>——
+          境界、战力、突破、宗门收支全部由写死的算式说了算。写剧情之前先把人物丢进来对一遍，
+          该赢的赢、该输的输，吃书在动笔前就暴露。
+        </p>
+        <span class="rule-note">核心公式：<span class="mono">战力 = 境界基数 × 阶段系数 × 灵根 × 功法 × 法宝</span> —— 全页的战力数值与对战判定都从这一行派生；突破与宗门收支另有各自的算式，同样写死在下方。</span>
+      </section>
+
+      <!-- ============ realm ladder ============ -->
+      <section class="panel" aria-label="境界天梯">
+        <h2>一、境界天梯</h2>
+        <p class="sub">先把「一个大境界到底强多少倍」定死。这是全书最不能临时改的一条规则：倍率决定了越阶的难度，也决定了天才的上限。拖动滑杆换个倍率，下面所有人物战力、对战判定都会跟着重算。</p>
+        <div class="ladder-ctl">
+          <div>
+            <div class="lc-label">大境界倍率（相邻大境界的战力差距）</div>
+            <input type="range" id="multSlider" min="5" max="20" step="1" value="10" aria-label="大境界倍率" />
+          </div>
+          <div class="lc-val">×<span id="multVal">10</span></div>
+          <p class="lc-note">倍率越大，世界越「境界森严」：越阶近乎不可能，老祖出场即定局；倍率越小，天才越容易翻盘，但也越容易写崩——先想清楚你的世界是哪一种。</p>
+        </div>
+        <div class="ladder" id="ladder"></div>
+        <p class="ladder-foot" id="ladderFoot"></p>
+      </section>
+
+      <!-- ============ roster ============ -->
+      <section class="panel" aria-label="角色名册">
+        <h2>二、角色名册</h2>
+        <p class="sub">把书里的人物一个个登记进来，战力由公式自动算出、自动排名。灵根、功法、法宝这些系数<b>只在同一境界内拉开差距</b>：全套顶配对全套白板最多约 15 倍，跨不过两个大境界——这是防崩的第一道闸。</p>
+        <form id="charForm">
+          <div class="form-grid">
+            <div class="field"><label for="cfName">姓名</label><input type="text" id="cfName" placeholder="如：陆青禾" maxlength="12" /></div>
+            <div class="field"><label for="cfRealm">境界</label><select id="cfRealm"></select></div>
+            <div class="field"><label for="cfStage">阶段</label><select id="cfStage"></select></div>
+            <div class="field"><label for="cfRoot">灵根</label><select id="cfRoot"></select></div>
+            <div class="field"><label for="cfTech">功法品阶</label><select id="cfTech"></select></div>
+            <div class="field"><label for="cfTreasure">法宝</label><select id="cfTreasure"></select></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn primary" type="submit">登记入册</button>
+            <span class="fa-note" id="cfPreview"></span>
+          </div>
+        </form>
+        <div class="char-grid" id="charGrid"></div>
+        <div class="empty-note" id="charEmpty" hidden>名册是空的。先登记几个人物，下面的对战验算和突破推演才有得算。</div>
+      </section>
+
+      <!-- ============ battle check ============ -->
+      <section class="panel" aria-label="对战验算">
+        <h2>三、对战验算 · 这一架能不能这么打</h2>
+        <p class="sub">写打斗之前先验算：选好胜者、败者和取胜方式，引擎会算出胜者需要「弥补」多少倍战力差距，并对照该方式的上限给出判决。<b>越阶不是不行，是必须付代价</b>——底牌、阵法、偷袭、对方重伤，代价写进正文，读者就认；什么代价都不付的越阶，就是崩。</p>
+        <div class="vs-grid">
+          <div class="field" style="margin:0"><label for="btWinner">胜者</label><select id="btWinner"></select></div>
+          <div class="vs-mid">胜</div>
+          <div class="field" style="margin:0"><label for="btLoser">败者</label><select id="btLoser"></select></div>
+        </div>
+        <div class="field" style="margin-top:13px; max-width:420px">
+          <label for="btMethod">取胜方式（决定可弥补的战力倍数上限）</label>
+          <select id="btMethod"></select>
+        </div>
+        <div class="view-toggle" role="group" aria-label="判定视角切换">
+          <button type="button" id="viewRule" class="active">规则视角</button>
+          <button type="button" id="viewNN">神经网络视角</button>
+        </div>
+        <div id="battleBody">
+          <div class="power-bars" id="battleBars"></div>
+          <div class="stat-row" id="battleStats"></div>
+          <div class="verdict" id="battleVerdict"></div>
+        </div>
+        <div id="nnBody" hidden>
+          <p class="nn-intro">同一套判定，换成神经网络的语言重写一遍：<b>权重全部手写（handwired）、没有训练</b>。诀窍在隐藏层——两个 relu 相减 <span class="mono">relu(x) − relu(x − 1)</span> 就能拼出一个「阈值开关」：输入越过阈值，开关从 0 爬到 1。两个开关分别盯着「差距越过 1 倍」和「差距越过方式上限」，输出层取最大值定判决。下面代入的是当前这对胜负双方的真实数值。</p>
+          <div class="nn-layers" id="nnLayers"></div>
+          <ol class="steps" id="nnSteps" style="margin-top:16px"></ol>
+          <div class="verdict" id="nnVerdict"></div>
+        </div>
+      </section>
+
+      <!-- ============ breakthrough ============ -->
+      <section class="panel" aria-label="突破推演">
+        <h2>四、突破推演 · 这关能不能破</h2>
+        <p class="sub">主角三年连破五境、配角卡在金丹两百年——凭什么是他？突破概率同样写成公式：目标境界的基础难度，再加灵根修正、丹药与道心。推演给出成功率和突破后的战力，升级节奏先在这里排好，正文里就不会忽快忽慢。</p>
+        <div class="duel-grid">
+          <div>
+            <div class="field"><label for="bkChar">推演人物</label><select id="bkChar"></select></div>
+            <div class="field"><label for="bkPill">辅佐丹药</label><select id="bkPill"></select></div>
+            <div class="field"><label for="bkMood">道心状态</label><select id="bkMood"></select></div>
+            <p class="hint" style="font-size:13px;color:var(--muted);margin:4px 0 0">推演的是从当前境界突破到<b>下一个大境界初期</b>。已在最高境界的人物无境可破。</p>
+          </div>
+          <div>
+            <div class="rate-wrap">
+              <div>
+                <div style="font-size:12.5px;color:var(--muted);font-weight:700;letter-spacing:.05em">突破成功率</div>
+                <div class="rate-big" id="bkRate">–</div>
+              </div>
+              <div class="rate-bar"><div id="bkRateBar" style="width:0%"></div></div>
+            </div>
+            <ol class="steps" id="bkSteps"></ol>
+            <div class="stat-row" id="bkStats"></div>
+            <p style="font-size:14px;color:var(--ink-soft);margin:6px 0 0" id="bkNote"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ sect ledger ============ -->
+      <section class="panel" aria-label="宗门账房">
+        <h2>五、宗门账房 · 家底经不经得起花</h2>
+        <p class="sub">战力之外，另一种崩法是<b>经济崩</b>：三百弟子的宗门靠两亩灵田养活、随手赏赐抵得上宗门十年收入。把灵田、灵矿、弟子俸禄填进来，月结余当场见分晓——赏赐、扩招、开战之前，先过账房这一关。</p>
+        <div class="sect-grid">
+          <div>
+            <div class="field"><label for="scFields">灵田（亩）</label><input type="number" id="scFields" value="120" min="0" step="10" /></div>
+            <div class="field"><label for="scGrade">灵田品阶</label><select id="scGrade"></select></div>
+            <div class="field"><label for="scMine">灵矿月产（灵石）</label><input type="number" id="scMine" value="800" min="0" step="100" /></div>
+            <div class="field"><label for="scHeads">弟子人数</label><input type="number" id="scHeads" value="300" min="0" step="10" /></div>
+            <div class="field"><label for="scPay">平均月俸（灵石 / 人）</label><input type="number" id="scPay" value="12" min="0" step="1" /></div>
+            <div class="field"><label for="scFixed">丹房 + 护山大阵月耗（灵石）</label><input type="number" id="scFixed" value="1500" min="0" step="100" /></div>
+          </div>
+          <div>
+            <div class="stat-row" id="sectStats" style="margin-top:0"></div>
+            <ol class="steps" id="sectSteps"></ol>
+            <div class="verdict" id="sectVerdict"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ notes ============ -->
+      <section class="notes">
+        <h2>为什么规则写成算式，就不容易崩</h2>
+        <p><b>崩坏的本质是「同一个人，前后两次出场不是同一个数」。</b>人脑记不住三百章里每个人的战力，但公式记得住：人物登记一次，之后任何一章要打架、要突破、要赏赐，代入同一套算式验算，答案永远一致。规则即代码，代码不会忘事。</p>
+        <pre class="code"><span class="cm">// 本世界的全部规则，就这几行</span>
+战力     = 境界基数 × 阶段系数 × 灵根 × 功法 × 法宝
+境界基数 = 10 × 倍率^境界序号        <span class="cm">// 指数律：境界差距是指数级的</span>
+越阶判定 = 败者战力 ÷ 胜者战力 ≤ 取胜方式的弥补上限
+突破概率 = 境界基础率 + 灵根修正 + 丹药 + 道心，再钳制在 3%…97%
+宗门月结余 = 灵田产出 + 灵矿 − 弟子俸禄 − 丹房与大阵消耗</pre>
+        <h2>三条防崩原则</h2>
+        <p><b>一、境界差距用指数律，不用感觉。</b>相邻大境界差着一个倍率（默认 10 倍），写之前先在天梯上看清楚：你安排的这场越阶，跨的是 10 倍还是 100 倍，心里要有数。</p>
+        <p><b>二、越阶必须付代价，且代价要写出来。</b>底牌尽出能弥补 3 倍、阵法陷阱 8 倍、群殴 10 倍——每种方式都有天花板。剧情需要更大的越阶，就先给人物攒够代价（重伤的对手、有克制的剧毒、经营多年的杀阵），而不是让战力临时膨胀。</p>
+        <p><b>三、系数只在同境之内分高下。</b>灵根、功法、法宝全拉满也只值约 15 倍——足够写出「同境无敌」的天才，却买不来跨两个大境界的胜利。天才感和秩序感，可以同时保住。</p>
+        <h2>使用建议</h2>
+        <p>开新书时先定倍率、登记主要人物；每写一场关键战斗、一次突破、一笔大额赏赐之前，回来验算一遍，一分钟的事。人物升境后记得回名册改境界——名册是这本书的「战力账本」，账本准，正文就崩不了。</p>
+      </section>
+
+      <footer>
+        本页所有判定均在浏览器本地按同一套公式计算，人物与账目只保存在当前页面中，刷新后恢复为示例名册。
+      </footer>
+    </main>
+
+    <script>
+      "use strict";
+      function el(id) { return document.getElementById(id); }
+      function esc(s) {
+        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      }
+      function clamp(v, lo, hi) { return Math.min(Math.max(v, lo), hi); }
+      /* 大数字格式化：万 / 亿 */
+      function fmtPow(n) {
+        if (!isFinite(n)) return "–";
+        if (n >= 1e8) return trimNum(n / 1e8) + " 亿";
+        if (n >= 1e4) return trimNum(n / 1e4) + " 万";
+        return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      }
+      function trimNum(n) {
+        var r = Math.round(n * 100) / 100;
+        return String(r);
+      }
+      function fmtCoef(n) { return "×" + trimNum(n); }
+      function fmtStone(n) {
+        var sign = n < 0 ? "−" : "";
+        return sign + fmtPow(Math.abs(n));
+      }
+
+      /* ================= 世界规则数据 ================= */
+      var REALMS = [
+        { name: "炼气", stages: ["一层", "二层", "三层", "四层", "五层", "六层", "七层", "八层", "九层"],
+          coefs: [1, 1.25, 1.55, 1.9, 2.3, 2.8, 3.4, 4.1, 5.0], life: 120, breakBase: null },
+        { name: "筑基", stages: ["初期", "中期", "后期", "巅峰"], coefs: [1, 1.8, 3.2, 5.6], life: 200, breakBase: 60 },
+        { name: "金丹", stages: ["初期", "中期", "后期", "巅峰"], coefs: [1, 1.8, 3.2, 5.6], life: 500, breakBase: 45 },
+        { name: "元婴", stages: ["初期", "中期", "后期", "巅峰"], coefs: [1, 1.8, 3.2, 5.6], life: 1000, breakBase: 32 },
+        { name: "化神", stages: ["初期", "中期", "后期", "巅峰"], coefs: [1, 1.8, 3.2, 5.6], life: 2000, breakBase: 24 },
+        { name: "炼虚", stages: ["初期", "中期", "后期", "巅峰"], coefs: [1, 1.8, 3.2, 5.6], life: 4000, breakBase: 18 },
+        { name: "合体", stages: ["初期", "中期", "后期", "巅峰"], coefs: [1, 1.8, 3.2, 5.6], life: 8000, breakBase: 13 },
+        { name: "大乘", stages: ["初期", "中期", "后期", "巅峰"], coefs: [1, 1.8, 3.2, 5.6], life: 20000, breakBase: 9 }
+      ];
+      var ROOTS = [
+        { name: "天灵根", coef: 1.5 }, { name: "变异灵根", coef: 1.35 },
+        { name: "双灵根", coef: 1.2 }, { name: "三灵根", coef: 1.0 },
+        { name: "四灵根", coef: 0.85 }, { name: "五灵根", coef: 0.7 }
+      ];
+      var TECHS = [
+        { name: "仙阶功法", coef: 2.6 }, { name: "天阶功法", coef: 2.0 },
+        { name: "地阶功法", coef: 1.6 }, { name: "玄阶功法", coef: 1.25 },
+        { name: "黄阶功法", coef: 1.0 }, { name: "残缺功法", coef: 0.8 }
+      ];
+      var TREASURES = [
+        { name: "先天至宝", coef: 2.2 }, { name: "灵宝", coef: 1.85 },
+        { name: "法宝", coef: 1.55 }, { name: "灵器", coef: 1.3 },
+        { name: "法器", coef: 1.12 }, { name: "无（赤手空拳）", coef: 1.0 }
+      ];
+      var METHODS = [
+        { name: "正面强杀（硬碰硬）", cap: 2, note: "正面强杀没有取巧空间：功法、法宝、临场发挥全算上，也只够弥补 2 倍。" },
+        { name: "底牌尽出（秘术 / 燃寿 / 爆种）", cap: 3, note: "底牌尽出能弥补 3 倍，但代价要写明：燃寿、损根基、秘术反噬，事后必须虚弱一阵。" },
+        { name: "对方重伤未愈", cap: 4, note: "趁对方重伤能弥补 4 倍，前提是伤势在前文有交代，且战力打折的程度读者能算得出来。" },
+        { name: "偷袭暗算", cap: 5, note: "偷袭暗算能弥补 5 倍：对方没来得及展开护体灵光，等于先手白打一轮。" },
+        { name: "剧毒 / 属性克制", cap: 6, note: "剧毒与克制能弥补 6 倍，但毒源、克制原理要在前文埋好伏笔，临时掏出一瓶『专克此功』的毒就是耍赖。" },
+        { name: "阵法 / 陷阱（主场经营）", cap: 8, note: "阵法陷阱能弥补 8 倍：这是拿时间和资源换的战力，阵眼、阵基被破则立刻失效。" },
+        { name: "群殴围攻（以多打少）", cap: 10, note: "群殴能弥补 10 倍，前提是围攻者不是杂鱼——每个至少要能破防，否则人再多也只是送菜。" }
+      ];
+      var PILLS = [
+        { name: "无丹药（硬冲）", bonus: 0 },
+        { name: "聚气散", bonus: 5 },
+        { name: "破境丹 · 下品", bonus: 10 },
+        { name: "破境丹 · 中品", bonus: 18 },
+        { name: "破境丹 · 上品", bonus: 28 },
+        { name: "破境丹 · 极品", bonus: 40 }
+      ];
+      var MOODS = [
+        { name: "道心稳固", bonus: 5 },
+        { name: "平平无奇", bonus: 0 },
+        { name: "心浮气躁", bonus: -10 },
+        { name: "心魔缠身", bonus: -22 }
+      ];
+      var GRADES = [
+        { name: "下品灵田", yield: 2 }, { name: "中品灵田", yield: 6 },
+        { name: "上品灵田", yield: 15 }, { name: "极品灵田", yield: 40 }
+      ];
+
+      var state = {
+        mult: 10,
+        nextId: 6,
+        chars: [
+          { id: 1, name: "陆青禾", realm: 0, stage: 8, root: 0, tech: 3, treasure: 4, sample: true },
+          { id: 2, name: "白芷", realm: 1, stage: 2, root: 2, tech: 2, treasure: 3, sample: true },
+          { id: 3, name: "沈砚", realm: 2, stage: 1, root: 3, tech: 3, treasure: 2, sample: true },
+          { id: 4, name: "顾长生", realm: 3, stage: 0, root: 0, tech: 1, treasure: 1, sample: true },
+          { id: 5, name: "玄冥子", realm: 4, stage: 3, root: 5, tech: 2, treasure: 2, sample: true }
+        ]
+      };
+
+      function realmBase(i) { return 10 * Math.pow(state.mult, i); }
+      function powerOf(c) {
+        var R = REALMS[c.realm];
+        var base = realmBase(c.realm);
+        var stage = R.coefs[c.stage];
+        var root = ROOTS[c.root].coef;
+        var tech = TECHS[c.tech].coef;
+        var tre = TREASURES[c.treasure].coef;
+        return { total: base * stage * root * tech * tre, base: base, stage: stage, root: root, tech: tech, tre: tre };
+      }
+      function realmLabel(c) { return REALMS[c.realm].name + REALMS[c.realm].stages[c.stage]; }
+      function findChar(id) {
+        for (var i = 0; i < state.chars.length; i++) if (state.chars[i].id === id) return state.chars[i];
+        return null;
+      }
+      function fillSelect(sel, items, labelFn) {
+        sel.innerHTML = "";
+        items.forEach(function (it, i) {
+          var o = document.createElement("option");
+          o.value = i;
+          o.textContent = labelFn(it, i);
+          sel.appendChild(o);
+        });
+      }
+      function fillCharSelect(sel) {
+        sel.innerHTML = "";
+        state.chars.forEach(function (c) {
+          var o = document.createElement("option");
+          o.value = c.id;
+          o.textContent = c.name + " · " + realmLabel(c) + " · 战力 " + fmtPow(powerOf(c).total);
+          sel.appendChild(o);
+        });
+      }
+
+      /* ================= 一、境界天梯 ================= */
+      function renderLadder() {
+        el("multVal").textContent = state.mult;
+        var logs = REALMS.map(function (R, i) {
+          return [Math.log10(realmBase(i)), Math.log10(realmBase(i) * R.coefs[R.coefs.length - 1])];
+        });
+        var lo = logs[0][0], hi = logs[logs.length - 1][1], span = hi - lo || 1;
+        var html = "";
+        REALMS.forEach(function (R, i) {
+          var left = (logs[i][0] - lo) / span * 100;
+          var width = Math.max((logs[i][1] - logs[i][0]) / span * 100, 0.6);
+          html += '<div class="ladder-row">' +
+            '<div class="lr-name">' + R.name + '</div>' +
+            '<div class="lr-track"><div class="lr-bar" style="left:' + left.toFixed(2) + '%;width:' + width.toFixed(2) + '%"></div></div>' +
+            '<div class="lr-nums">战力 <b>' + fmtPow(realmBase(i)) + ' – ' + fmtPow(realmBase(i) * R.coefs[R.coefs.length - 1]) + '</b><br />寿元 ' + R.life + ' 年</div>' +
+            '</div>';
+        });
+        el("ladder").innerHTML = html;
+        el("ladderFoot").textContent = "条带按对数尺度绘制：每跨一个大境界，战力整体抬高 ×" + state.mult +
+          "；同一境界内从初入到巅峰约再涨 ×5.6（炼气为九层递进，约 ×5）。当前世界里，最弱的大乘初期与最强的炼气九层之间，差着约 " +
+          fmtPow(realmBase(7) / (realmBase(0) * REALMS[0].coefs[8])) + " 倍——这就是任何越阶剧情要跨过的鸿沟。";
+      }
+      el("multSlider").addEventListener("input", function () {
+        state.mult = parseInt(this.value, 10);
+        renderAll();
+      });
+
+      /* ================= 二、角色名册 ================= */
+      function fillStageOptions() {
+        var r = parseInt(el("cfRealm").value, 10);
+        fillSelect(el("cfStage"), REALMS[r].stages, function (s) { return s; });
+      }
+      function previewForm() {
+        var name = el("cfName").value.trim() || "（未命名）";
+        var c = {
+          realm: parseInt(el("cfRealm").value, 10),
+          stage: parseInt(el("cfStage").value, 10) || 0,
+          root: parseInt(el("cfRoot").value, 10),
+          tech: parseInt(el("cfTech").value, 10),
+          treasure: parseInt(el("cfTreasure").value, 10)
+        };
+        var p = powerOf(c);
+        el("cfPreview").textContent = name + " · " + realmLabel(c) + " · 预估战力 " + fmtPow(p.total);
+      }
+      function renderChars() {
+        var sorted = state.chars.slice().sort(function (a, b) { return powerOf(b).total - powerOf(a).total; });
+        var grid = el("charGrid");
+        el("charEmpty").hidden = state.chars.length > 0;
+        grid.innerHTML = sorted.map(function (c, idx) {
+          var p = powerOf(c);
+          return '<div class="char-card">' +
+            '<button class="cc-del" type="button" data-del="' + c.id + '" aria-label="删除 ' + esc(c.name) + '">✕</button>' +
+            '<div class="cc-top"><span class="cc-name">' + esc(c.name) + '</span>' +
+            '<span class="cc-rank">第 ' + (idx + 1) + ' 名' + (c.sample ? ' · <span class="cc-sample">示例</span>' : '') + '</span></div>' +
+            '<div class="cc-realm">' + realmLabel(c) + '</div>' +
+            '<div class="cc-power">' + fmtPow(p.total) + ' <small>战力</small></div>' +
+            '<div class="cc-parts mono">' + fmtPow(p.base) + ' 基数 × ' + trimNum(p.stage) + ' 阶段 × ' + trimNum(p.root) + ' 灵根 × ' + trimNum(p.tech) + ' 功法 × ' + trimNum(p.tre) + ' 法宝</div>' +
+            '<div class="cc-tags"><span class="cc-tag">' + ROOTS[c.root].name + '</span>' +
+            '<span class="cc-tag">' + TECHS[c.tech].name + '</span>' +
+            '<span class="cc-tag">' + TREASURES[c.treasure].name + '</span>' +
+            '<span class="cc-tag">寿元 ' + REALMS[c.realm].life + ' 年</span></div>' +
+            '</div>';
+        }).join("");
+        Array.prototype.forEach.call(grid.querySelectorAll("[data-del]"), function (btn) {
+          btn.addEventListener("click", function () {
+            var id = parseInt(btn.getAttribute("data-del"), 10);
+            state.chars = state.chars.filter(function (c) { return c.id !== id; });
+            renderAll();
+          });
+        });
+      }
+      el("charForm").addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        var name = el("cfName").value.trim();
+        if (!name) { el("cfName").focus(); el("cfPreview").textContent = "先给人物起个名字。"; return; }
+        state.chars.push({
+          id: state.nextId++,
+          name: name,
+          realm: parseInt(el("cfRealm").value, 10),
+          stage: parseInt(el("cfStage").value, 10) || 0,
+          root: parseInt(el("cfRoot").value, 10),
+          tech: parseInt(el("cfTech").value, 10),
+          treasure: parseInt(el("cfTreasure").value, 10),
+          sample: false
+        });
+        el("cfName").value = "";
+        renderAll();
+      });
+      ["cfRealm", "cfStage", "cfRoot", "cfTech", "cfTreasure"].forEach(function (id) {
+        el(id).addEventListener("change", function () {
+          if (id === "cfRealm") fillStageOptions();
+          previewForm();
+        });
+      });
+      el("cfName").addEventListener("input", previewForm);
+
+      /* ================= 三、对战验算 ================= */
+      function renderBattleSelects(keep) {
+        var w = keep ? el("btWinner").value : null;
+        var l = keep ? el("btLoser").value : null;
+        fillCharSelect(el("btWinner"));
+        fillCharSelect(el("btLoser"));
+        if (state.chars.length === 0) return;
+        var ids = state.chars.map(function (c) { return String(c.id); });
+        el("btWinner").value = (w && ids.indexOf(w) >= 0) ? w : String(state.chars[0].id);
+        var defLoser = state.chars.length > 1 ? String(state.chars[1].id) : String(state.chars[0].id);
+        el("btLoser").value = (l && ids.indexOf(l) >= 0) ? l : defLoser;
+      }
+      function renderBattle() {
+        var body = el("battleBody");
+        if (state.chars.length === 0) {
+          body.innerHTML = '<div class="empty-note">名册里没有人物，先去上面登记至少两个人。</div>';
+          el("nnLayers").innerHTML = "";
+          el("nnSteps").innerHTML = "";
+          var nv0 = el("nnVerdict");
+          nv0.className = "verdict warn";
+          nv0.innerHTML = '<p class="v-title">◐ 暂无可算</p><p>名册里没有人物，先去上面登记至少两个人，网络才有数可代入。</p>';
+          return;
+        }
+        var w = findChar(parseInt(el("btWinner").value, 10));
+        var l = findChar(parseInt(el("btLoser").value, 10));
+        var m = METHODS[parseInt(el("btMethod").value, 10)];
+        if (!w || !l) return;
+        var pw = powerOf(w).total, pl = powerOf(l).total;
+        var gap = pl / pw;                       /* 胜者需要弥补的倍数 */
+        var realmGap = l.realm - w.realm;
+        var maxLog = Math.log10(Math.max(pw, pl, 10));
+        function barW(p) { return Math.max(Math.log10(Math.max(p, 1)) / maxLog * 100, 2); }
+        el("battleBars").innerHTML =
+          '<div class="pb-row"><span class="pb-name">' + esc(w.name) + '（胜）</span>' +
+          '<div class="pb-track"><div class="pb-fill" style="width:' + barW(pw).toFixed(1) + '%"></div></div>' +
+          '<span class="pb-val">' + fmtPow(pw) + '</span></div>' +
+          '<div class="pb-row"><span class="pb-name">' + esc(l.name) + '（败）</span>' +
+          '<div class="pb-track"><div class="pb-fill loser" style="width:' + barW(pl).toFixed(1) + '%"></div></div>' +
+          '<span class="pb-val">' + fmtPow(pl) + '</span></div>' +
+          '<p style="font-size:12.5px;color:var(--muted);margin:2px 0 0">条带按对数尺度：差一个大境界，条带就差一整格量级。</p>';
+        el("battleStats").innerHTML =
+          '<div class="stat"><div class="sl">胜者战力</div><div class="sv">' + fmtPow(pw) + '</div></div>' +
+          '<div class="stat"><div class="sl">败者战力</div><div class="sv">' + fmtPow(pl) + '</div></div>' +
+          '<div class="stat"><div class="sl">需弥补差距</div><div class="sv accent">' + (gap <= 1 ? "无需弥补" : "×" + trimNum(Math.round(gap * 10) / 10)) + '</div></div>' +
+          '<div class="stat"><div class="sl">境界差</div><div class="sv">' + (realmGap > 0 ? "低 " + realmGap + " 个大境界" : realmGap < 0 ? "高 " + (-realmGap) + " 个大境界" : "同境") + '</div></div>' +
+          '<div class="stat"><div class="sl">该方式上限</div><div class="sv">×' + m.cap + '</div></div>';
+        var ruleKind = (w.id === l.id) ? "same" : gap <= 1 ? "ok" : gap <= m.cap ? "warn" : "bad";
+        var v = el("battleVerdict");
+        if (w.id === l.id) {
+          v.className = "verdict warn";
+          v.innerHTML = '<p class="v-title">自己打自己？</p><p>胜者和败者选了同一个人，换一对再验算。</p>';
+        } else if (gap <= 1) {
+          v.className = "verdict ok";
+          v.innerHTML = '<p class="v-title">✓ 顺理成章</p><p><span class="mono">' + esc(w.name) + '</span> 战力本就压过 <span class="mono">' + esc(l.name) + '</span>（' +
+            fmtPow(pw) + ' 对 ' + fmtPow(pl) + '），这一架谁赢都写得通。想让它好看，别让胜者赢得太轻松——败者的底牌至少要逼出来一两张。</p>';
+        } else if (gap <= m.cap) {
+          v.className = "verdict warn";
+          v.innerHTML = '<p class="v-title">◐ 勉强成立 · 代价必须写足</p><p><span class="mono">' + esc(w.name) + '</span> 需要弥补 <span class="mono">×' + trimNum(Math.round(gap * 10) / 10) + '</span> 的战力差距，在「' + esc(m.name) + '」的上限 ×' + m.cap + ' 之内，可以打。</p><p>' + esc(m.note) + '</p>';
+        } else {
+          v.className = "verdict bad";
+          v.innerHTML = '<p class="v-title">✕ 战力崩坏 · 这架不能这么打</p><p><span class="mono">' + esc(w.name) + '</span>（' + realmLabel(w) + '，战力 ' + fmtPow(pw) + '）打赢 <span class="mono">' + esc(l.name) + '</span>（' + realmLabel(l) + '，战力 ' + fmtPow(pl) + '），需要弥补 <span class="mono">×' + trimNum(Math.round(gap * 10) / 10) + '</span> 的差距，而「' + esc(m.name) + '」最多只值 ×' + m.cap + '。' +
+            (realmGap >= 2 ? '两人差着 ' + realmGap + ' 个大境界，按本世界倍率 ×' + state.mult + '，这是量级碾压，不是奇才能填的坑。' : '') +
+            '</p><p>改法三选一：给胜者先升境、给败者先安排一场重伤、或者换上阵法 / 群殴这类高上限的方式，并把代价在前文埋好。</p>';
+        }
+        renderNN(w, l, m, pw, pl, ruleKind);
+      }
+
+      /* ---------- 神经网络视角：同一套判定，handwired 重写 ----------
+         特征 s = 1000 × log10(败者战力 ÷ 胜者战力)，把指数级差距压成网络能处理的尺度。
+         阈值开关：relu(x) − relu(x − 1)，输入越过阈值后从 0 爬到 1（斜坡宽 0.001 个对数单位，约 0.23% 的倍数差）。
+         n1 盯「差距越过 1 倍」，n2 盯「差距越过方式上限 ×cap」；输出层三路分数取最大值定判决。 */
+      function fmtS(x) { return trimNum(Math.round(x * 10) / 10); }
+      function fmtScore(x) { return trimNum(Math.round(x * 1000) / 1000); }
+      function renderNN(w, l, m, pw, pl, ruleKind) {
+        var t = Math.log10(pl) - Math.log10(pw);
+        var s = 1000 * t;
+        var S = Math.round(1000 * Math.log10(m.cap));
+        var r1 = Math.max(0, s), r2 = Math.max(0, s - 1);
+        var r3 = Math.max(0, s - S), r4 = Math.max(0, s - S - 1);
+        var n1 = r1 - r2, n2 = r3 - r4;
+        var scOk = 1 - n1, scWarn = n1 - n2, scBad = n2;
+        var kind = "ok", best = scOk;
+        if (scWarn > best) { best = scWarn; kind = "warn"; }
+        if (scBad > best) { best = scBad; kind = "bad"; }
+        function node(name, formula, val) {
+          return '<div class="nn-node"><div class="nn-name">' + name + '</div>' +
+            '<div class="nn-formula">' + formula + '</div>' +
+            '<div class="nn-val">' + val + '</div></div>';
+        }
+        function outNode(name, formula, val, k) {
+          return '<div class="nn-node' + (kind === k ? " win-" + k : "") + '"><div class="nn-name">' + name + '</div>' +
+            '<div class="nn-formula">' + formula + '</div>' +
+            '<div class="nn-val">' + val + '</div></div>';
+        }
+        el("nnLayers").innerHTML =
+          '<div class="nn-layer"><div class="nl-title">输入层 · 特征</div>' +
+            node("s", "1000 × log₁₀（败者战力 ÷ 胜者战力）", fmtS(s)) + '</div>' +
+          '<div class="nn-arrow" aria-hidden="true">→</div>' +
+          '<div class="nn-layer"><div class="nl-title">隐藏层 · relu 单元</div>' +
+            node("r₁", "relu(s − 0)", fmtS(r1)) +
+            node("r₂", "relu(s − 1)", fmtS(r2)) +
+            node("r₃", "relu(s − " + S + ")", fmtS(r3)) +
+            node("r₄", "relu(s − " + (S + 1) + ")", fmtS(r4)) + '</div>' +
+          '<div class="nn-arrow" aria-hidden="true">→</div>' +
+          '<div class="nn-layer"><div class="nl-title">门控层 · 权重 ±1</div>' +
+            node("n₁", "r₁ − r₂ · 差距越过 1 倍？", fmtScore(n1)) +
+            node("n₂", "r₃ − r₄ · 差距越过上限 ×" + m.cap + "？", fmtScore(n2)) + '</div>' +
+          '<div class="nn-arrow" aria-hidden="true">→</div>' +
+          '<div class="nn-layer"><div class="nl-title">输出层 · 取最大值</div>' +
+            outNode("顺理成章", "1 − n₁", fmtScore(scOk), "ok") +
+            outNode("勉强成立", "n₁ − n₂", fmtScore(scWarn), "warn") +
+            outNode("战力崩坏", "n₂", fmtScore(scBad), "bad") + '</div>';
+        el("nnSteps").innerHTML =
+          '<li><span class="expr">取特征：s = 1000 ×（log₁₀ ' + fmtPow(pl) + ' − log₁₀ ' + fmtPow(pw) + '）<span class="mono"> = 1000 × ' + trimNum(Math.round(t * 10000) / 10000) + '</span></span><span class="res">' + fmtS(s) + '</span></li>' +
+          '<li><span class="expr">阈值开关一：n₁ = relu(s) − relu(s − 1) = ' + fmtS(r1) + ' − ' + fmtS(r2) + '</span><span class="res">' + fmtScore(n1) + '</span></li>' +
+          '<li><span class="expr">上限阈值：S = 1000 × log₁₀（方式上限 ×' + m.cap + '）</span><span class="res">' + S + '</span></li>' +
+          '<li><span class="expr">阈值开关二：n₂ = relu(s − S) − relu(s − S − 1) = ' + fmtS(r3) + ' − ' + fmtS(r4) + '</span><span class="res">' + fmtScore(n2) + '</span></li>' +
+          '<li><span class="expr">输出层：顺理成章 = 1 − n₁；勉强成立 = n₁ − n₂；崩坏 = n₂</span><span class="res">' + fmtScore(scOk) + ' / ' + fmtScore(scWarn) + ' / ' + fmtScore(scBad) + '</span></li>' +
+          '<li><span class="expr">取最大值 → 网络判决</span><span class="res">' + (kind === "ok" ? "顺理成章" : kind === "warn" ? "勉强成立" : "战力崩坏") + '</span></li>';
+        var nv = el("nnVerdict");
+        var titles = { ok: "✓ 网络判决：顺理成章", warn: "◐ 网络判决：勉强成立", bad: "✕ 网络判决：战力崩坏" };
+        if (ruleKind === "same") {
+          nv.className = "verdict warn";
+          nv.innerHTML = '<p class="v-title">◐ 胜负双方是同一个人</p><p>网络照样把数算完了，但这场对战本身不成立——回规则视角换一对再验算。</p>';
+        } else if (kind === ruleKind) {
+          nv.className = "verdict " + kind;
+          nv.innerHTML = '<p class="v-title">' + titles[kind] + '</p><p>与规则视角的判定<b>完全一致</b>。没有一行 if-else，没有训练：四个 relu 单元、两组 ±1 权重、一次取最大值，就把「差距 ≤ 1 倍 / ≤ 方式上限 / 超限」三段判定原样拼了出来——同一套规则，两种面孔。</p>';
+        } else {
+          nv.className = "verdict warn";
+          nv.innerHTML = '<p class="v-title">◐ 正卡在阈值边界上</p><p>这对组合的战力差距与判定阈值只差不到 0.3%，落在 relu 开关的斜坡里，网络给出软分数 <span class="mono">' + fmtScore(scOk) + ' / ' + fmtScore(scWarn) + ' / ' + fmtScore(scBad) + '</span>，取最大值与规则视角的硬判定略有出入。这正是手写网络和写死规则的唯一区别：边界上它不武断，它「犹豫」——把三个分数摆出来，让作者自己拍板。</p>';
+        }
+      }
+      function setView(v) {
+        el("battleBody").hidden = v !== "rule";
+        el("nnBody").hidden = v !== "nn";
+        el("viewRule").classList.toggle("active", v === "rule");
+        el("viewNN").classList.toggle("active", v === "nn");
+      }
+      el("viewRule").addEventListener("click", function () { setView("rule"); });
+      el("viewNN").addEventListener("click", function () { setView("nn"); });
+
+      ["btWinner", "btLoser", "btMethod"].forEach(function (id) {
+        el(id).addEventListener("change", renderBattle);
+      });
+
+      /* ================= 四、突破推演 ================= */
+      function renderBreakSelect(keep) {
+        var cur = keep ? el("bkChar").value : null;
+        fillCharSelect(el("bkChar"));
+        if (state.chars.length === 0) return;
+        var ids = state.chars.map(function (c) { return String(c.id); });
+        el("bkChar").value = (cur && ids.indexOf(cur) >= 0) ? cur : String(state.chars[0].id);
+      }
+      function renderBreak() {
+        var has = state.chars.length > 0;
+        el("bkRate").textContent = "–";
+        el("bkSteps").innerHTML = "";
+        el("bkStats").innerHTML = "";
+        el("bkNote").textContent = has ? "" : "名册里没有人物，先去上面登记。";
+        el("bkRateBar").style.width = "0%";
+        if (!has) return;
+        var c = findChar(parseInt(el("bkChar").value, 10));
+        if (!c) return;
+        if (c.realm >= REALMS.length - 1) {
+          el("bkNote").textContent = c.name + " 已是大乘，再往上是飞升——那已经不是突破，是换地图了。本推演只管大乘以下。";
+          return;
+        }
+        var target = REALMS[c.realm + 1];
+        var pill = PILLS[parseInt(el("bkPill").value, 10)];
+        var mood = MOODS[parseInt(el("bkMood").value, 10)];
+        var rootFix = Math.round((ROOTS[c.root].coef - 1) * 20);
+        var raw = target.breakBase + rootFix + pill.bonus + mood.bonus;
+        var rate = clamp(raw, 3, 97);
+        el("bkRate").textContent = rate + "%";
+        el("bkRateBar").style.width = rate + "%";
+        function signed(n) { return (n > 0 ? "+" : n < 0 ? "−" : "±") + Math.abs(n); }
+        el("bkSteps").innerHTML =
+          '<li><span class="expr">目标境界基础率：突破到' + target.name + '</span><span class="res">' + target.breakBase + '%</span></li>' +
+          '<li><span class="expr">灵根修正：' + ROOTS[c.root].name + '（系数 ' + trimNum(ROOTS[c.root].coef) + '）</span><span class="res">' + signed(rootFix) + '%</span></li>' +
+          '<li><span class="expr">丹药：' + pill.name + '</span><span class="res">' + signed(pill.bonus) + '%</span></li>' +
+          '<li><span class="expr">道心：' + mood.name + '</span><span class="res">' + signed(mood.bonus) + '%</span></li>' +
+          '<li><span class="expr">合计 ' + raw + '%' + (raw !== rate ? '，钳制到 ' + rate + '%' : '') + '</span><span class="res">' + rate + '%</span></li>';
+        var before = powerOf(c).total;
+        var after = powerOf({ realm: c.realm + 1, stage: 0, root: c.root, tech: c.tech, treasure: c.treasure }).total;
+        el("bkStats").innerHTML =
+          '<div class="stat"><div class="sl">当前战力</div><div class="sv">' + fmtPow(before) + '</div></div>' +
+          '<div class="stat"><div class="sl">破境后（' + target.name + '初期）</div><div class="sv accent">' + fmtPow(after) + '</div></div>' +
+          '<div class="stat"><div class="sl">战力增幅</div><div class="sv">×' + trimNum(Math.round(after / before * 10) / 10) + '</div></div>' +
+          '<div class="stat"><div class="sl">寿元上限</div><div class="sv">' + REALMS[c.realm].life + ' → ' + target.life + ' 年</div></div>';
+        el("bkNote").textContent =
+          rate >= 70 ? "把握很大。安排他闭关突破是顺水推舟；若想制造波折，波折该来自外敌打扰或资源被夺，而不是让他莫名其妙失败。" :
+          rate >= 45 ? "五五开的关口。成败都写得通，但要在正文里给出理由：临阵顿悟、丹药超常发挥，或者心魔劫里差点没扛住。" :
+          rate >= 25 ? "凶多吉少。真要让他过，要么先补一味好丹药、把道心养稳，要么接受失败的代价——跌境、损寿、道基裂纹，后面用章节慢慢还。" :
+          "这基本是送死局。除非有天大的机缘在前文已经埋好（传承、灌顶、夺舍级奇遇），否则让他这一关硬冲，读者只会觉得主角光环在裸奔。";
+      }
+      ["bkChar", "bkPill", "bkMood"].forEach(function (id) {
+        el(id).addEventListener("change", renderBreak);
+      });
+
+      /* ================= 五、宗门账房 ================= */
+      function num(id) { var v = parseFloat(el(id).value); return isFinite(v) && v > 0 ? v : 0; }
+      function renderSect() {
+        var fields = num("scFields");
+        var grade = GRADES[parseInt(el("scGrade").value, 10)];
+        var mine = num("scMine");
+        var heads = num("scHeads");
+        var pay = num("scPay");
+        var fixed = num("scFixed");
+        var farmIncome = fields * grade.yield;
+        var income = farmIncome + mine;
+        var payOut = heads * pay;
+        var expense = payOut + fixed;
+        var balance = income - expense;
+        var margin = income > 0 ? balance / income : 0;
+        el("sectSteps").innerHTML =
+          '<li><span class="expr">灵田收入：' + fields + ' 亩 × ' + grade.yield + ' 灵石（' + grade.name + '）</span><span class="res">' + fmtPow(farmIncome) + '</span></li>' +
+          '<li><span class="expr">灵矿收入</span><span class="res">' + fmtPow(mine) + '</span></li>' +
+          '<li><span class="expr">弟子俸禄：' + heads + ' 人 × ' + pay + ' 灵石</span><span class="res">−' + fmtPow(payOut) + '</span></li>' +
+          '<li><span class="expr">丹房 + 护山大阵</span><span class="res">−' + fmtPow(fixed) + '</span></li>' +
+          '<li><span class="expr">月结余</span><span class="res">' + fmtStone(balance) + ' 灵石</span></li>';
+        el("sectStats").innerHTML =
+          '<div class="stat"><div class="sl">月收入（灵石）</div><div class="sv">' + fmtPow(income) + '</div></div>' +
+          '<div class="stat"><div class="sl">月支出（灵石）</div><div class="sv">' + fmtPow(expense) + '</div></div>' +
+          '<div class="stat"><div class="sl">月结余</div><div class="sv ' + (balance < 0 ? "bad" : "good") + '">' + fmtStone(balance) + '</div></div>' +
+          '<div class="stat"><div class="sl">年结余</div><div class="sv ' + (balance < 0 ? "bad" : "good") + '">' + fmtStone(balance * 12) + '</div></div>' +
+          '<div class="stat"><div class="sl">人均月资源</div><div class="sv">' + (heads > 0 ? fmtPow(income / heads) : "–") + '</div></div>';
+        var v = el("sectVerdict");
+        if (income === 0) {
+          v.className = "verdict warn";
+          v.innerHTML = '<p class="v-title">◐ 没有进项</p><p>灵田和灵矿都是零，这个宗门在靠库存过日子——库存还能撑多久，正文里最好有个说法。</p>';
+        } else if (balance < 0) {
+          v.className = "verdict bad";
+          v.innerHTML = '<p class="v-title">✕ 入不敷出 · 经济已经崩了</p><p>每月净亏 <span class="mono">' + fmtPow(-balance) + ' 灵石</span>。这种宗门要么正在变卖家底，要么俸禄早已拖欠——弟子叛逃、长老出走都是迟早的事。剧情里若还是一派豪奢，读者一算账就露馅。</p>';
+        } else if (margin < 0.15) {
+          v.className = "verdict warn";
+          v.innerHTML = '<p class="v-title">◐ 紧巴巴 · 经不起大手笔</p><p>结余率只有 <span class="mono">' + Math.round(margin * 100) + '%</span>。日常运转没问题，但一次大战、一炉高阶丹、一件像样的赏赐，就能把账掏空——花钱之前，让账房先生在正文里露个脸。</p>';
+        } else {
+          v.className = "verdict ok";
+          v.innerHTML = '<p class="v-title">✓ 家底厚实</p><p>结余率 <span class="mono">' + Math.round(margin * 100) + '%</span>，年攒 <span class="mono">' + fmtPow(balance * 12) + ' 灵石</span>。这个宗门赏赐、扩招、备战都花得起；但也别让长老随手掏出超过年结余的宝物——那叫私房钱，得单独交代来历。</p>';
+        }
+      }
+      ["scFields", "scMine", "scHeads", "scPay", "scFixed"].forEach(function (id) {
+        el(id).addEventListener("input", renderSect);
+      });
+      el("scGrade").addEventListener("change", renderSect);
+
+      /* ================= 初始化 ================= */
+      function renderAll() {
+        renderLadder();
+        renderChars();
+        renderBattleSelects(true);
+        renderBattle();
+        renderBreakSelect(true);
+        renderBreak();
+        renderSect();
+      }
+      fillSelect(el("cfRealm"), REALMS, function (R) { return R.name; });
+      fillStageOptions();
+      fillSelect(el("cfRoot"), ROOTS, function (r) { return r.name + "（" + fmtCoef(r.coef) + "）"; });
+      fillSelect(el("cfTech"), TECHS, function (t) { return t.name + "（" + fmtCoef(t.coef) + "）"; });
+      fillSelect(el("cfTreasure"), TREASURES, function (t) { return t.name + "（" + fmtCoef(t.coef) + "）"; });
+      fillSelect(el("btMethod"), METHODS, function (m) { return m.name + " · 上限 ×" + m.cap; });
+      fillSelect(el("bkPill"), PILLS, function (p) { return p.name + "（" + (p.bonus > 0 ? "+" : "") + p.bonus + "%）"; });
+      fillSelect(el("bkMood"), MOODS, function (m) { return m.name + "（" + (m.bonus > 0 ? "+" : "") + m.bonus + "%）"; });
+      fillSelect(el("scGrade"), GRADES, function (g) { return g.name + " · " + g.yield + " 灵石/亩/月"; });
+      el("cfRealm").value = 0; fillStageOptions();
+      el("cfStage").value = 8;
+      el("cfRoot").value = 3; el("cfTech").value = 4; el("cfTreasure").value = 5;
+      previewForm();
+      renderAll();
+      /* 默认演示一对经典越阶：炼气九层 vs 筑基后期 */
+      if (state.chars.length > 1) {
+        el("btWinner").value = "1";
+        el("btLoser").value = "2";
+        el("btMethod").value = 1;
+        renderBattle();
+      }
+    </script>
+  </body>
+</html>
